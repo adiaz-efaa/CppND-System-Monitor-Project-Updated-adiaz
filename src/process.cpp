@@ -16,7 +16,7 @@ Process::Process(int pid) : pid_(pid) {
   GetCommand_();
 }
 
-void Process::GetUser_() {}
+void Process::GetUser_() { user_ = LinuxParser::User(pid_); }
 
 void Process::GetCommand_() {}
 
@@ -27,10 +27,10 @@ int Process::Pid() const { return pid_; }
 float Process::CpuUtilization() { return 0; }
 
 // DONE: Return the command that generated this process
-string Process::Command() const { return command_; }
+string Process::Command() const { return LinuxParser::Command(pid_); }
 
 // TODO: Return this process's memory utilization
-string Process::Ram() { return string(); }
+string Process::Ram() { return LinuxParser::Ram(pid_); }
 
 // DONE: Return the user (name) that generated this process
 string Process::User() const { return user_; }

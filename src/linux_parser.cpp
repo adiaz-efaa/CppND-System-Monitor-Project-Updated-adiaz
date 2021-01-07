@@ -150,17 +150,45 @@ int LinuxParser::RunningProcesses() {
 
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Command(int pid[[maybe_unused]]) { return string(); }
+string LinuxParser::Command(int pid) {
+  string os, version, kernel;
+  string line;
+  std::ifstream stream(kProcDirectory + to_string(pid) + kCmdlineFilename);
+  if (stream.is_open()) {
+    std::getline(stream, line);
+    return line;
+    // std::istringstream linestream(line);
+    // linestream >> os >> version >> kernel;
+  }
+  return "There was a problem fetching the command.";
+}
 
-// TODO: Read and return the memory used by a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid[[maybe_unused]]) { return string(); }
+// DONE: Read and return the memory used by a process
+string LinuxParser::Ram(int pid) {
+  string line;
+  string key;
+  int value, vmSize;
+  std::ifstream filestream(kProcDirectory + to_string(pid) + "/status");
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      std::istringstream linestream(line);
+      while (linestream >> key >> value) {
+        if (key == "VmSize:") {
+          vmSize = value;
+          return to_string(vmSize);
+        }
+      }
+    }
+  }
+
+  return "RAM for Pid " + to_string(pid) + " not found.";
+}
 
 // DONE: Read and return the user ID associated with a process
 string LinuxParser::Uid(int pid) {
   string line;
   string key;
-  float value, uid;
+  int value, uid;
   std::ifstream filestream(kProcDirectory + to_string(pid) + "/status");
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
@@ -177,8 +205,7 @@ string LinuxParser::Uid(int pid) {
   return to_string(uid);
 }
 
-// TODO: Read and return the user associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
+// DONE: Read and return the user associated with a process
 string LinuxParser::User(int pid) {
   string line;
   string key;
@@ -191,12 +218,11 @@ string LinuxParser::User(int pid) {
       std::replace(line.begin(), line.end(), ':', ' ');
       std::istringstream linestream(line);
       while (linestream >> key >> x >> value) {
-        if (value == "-1") {
-          break;
+        if (value == uid) {
+          return key;
         }
       }
     }
   }
-
   return key;
 }
