@@ -1,5 +1,6 @@
 #include <dirent.h>
 #include <unistd.h>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -66,8 +67,7 @@ vector<int> LinuxParser::Pids() {
   return pids;
 }
 
-// TODO: Read and return the system memory utilization.
-// DONE
+// DONE: Read and return the system memory utilization.
 float LinuxParser::MemoryUtilization() {
   string line;
   string key;
@@ -78,7 +78,7 @@ float LinuxParser::MemoryUtilization() {
       std::istringstream linestream(line);
       while (linestream >> key >> value) {
         if (key == "MemTotal:") {
-           memTotal = value;
+          memTotal = value;
         } else if (key == "MemFree:") {
           memFree = value;
         } else {
@@ -91,7 +91,7 @@ float LinuxParser::MemoryUtilization() {
   return memUtil;
 }
 
-// TODO: Read and return the system uptime
+// DONE: Read and return the system uptime
 long LinuxParser::UpTime() {
   long uptime, whatever;
   string line;
@@ -105,33 +105,36 @@ long LinuxParser::UpTime() {
   return uptime;
 }
 
-// TODO: Read and return the number of jiffies for the system
+// The following three functions were not implemented. The necessary jiffies
+// for the calculation of Cpu utilization in Processor::Utilization() are
+// read in that class.
+// NOT DONE: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() { return 0; }
+
+// NOT DONE: Read and return the number of active jiffies for the system
+long LinuxParser::ActiveJiffies() { return 0; }
+
+// NOT DONE: Read and return the number of idle jiffies for the system
+long LinuxParser::IdleJiffies() { return 0; }
+
+// NOT DONE: Read and return CPU utilization
+vector<string> LinuxParser::CpuUtilization() { return {}; }
+// *******************************************************************
 
 // TODO: Read and return the number of active jiffies for a PID
 // REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
 
-// TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
+// DONE: Read and return the total number of processes
+int LinuxParser::TotalProcesses() { return Pids().size(); }
 
-// TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() { return 0; }
-
-// TODO: Read and return CPU utilization
-vector<string> LinuxParser::CpuUtilization() {
-  return {};
-}
-
-// TODO: Read and return the total number of processes
-int LinuxParser::TotalProcesses() { return 0; }
-
-// TODO: Read and return the number of running processes
+// DONE: Read and return the number of running processes
 int LinuxParser::RunningProcesses() {
   std::string line;
   std::string key;
   int runningProcesses;
-  std::ifstream filestream(LinuxParser::kProcDirectory + LinuxParser::kStatFilename);
+  std::ifstream filestream(LinuxParser::kProcDirectory +
+                           LinuxParser::kStatFilename);
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
       std::istringstream linestream(line);
@@ -153,10 +156,47 @@ string LinuxParser::Command(int pid[[maybe_unused]]) { return string(); }
 // REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Ram(int pid[[maybe_unused]]) { return string(); }
 
-// TODO: Read and return the user ID associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Uid(int pid[[maybe_unused]]) { return string(); }
+// DONE: Read and return the user ID associated with a process
+string LinuxParser::Uid(int pid) {
+  string line;
+  string key;
+  float value, uid;
+  std::ifstream filestream(kProcDirectory + to_string(pid) + "/status");
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      std::istringstream linestream(line);
+      while (linestream >> key >> value) {
+        if (key == "Uid:") {
+          uid = value;
+          break;
+        }
+      }
+    }
+  }
+
+  return to_string(uid);
+}
 
 // TODO: Read and return the user associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::User(int pid[[maybe_unused]]) { return string(); }
+string LinuxParser::User(int pid) {
+  string line;
+  string key;
+  string x;
+  string value;
+  auto uid = Uid(pid);
+  std::ifstream filestream(kPasswordPath);
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      std::replace(line.begin(), line.end(), ':', ' ');
+      std::istringstream linestream(line);
+      while (linestream >> key >> x >> value) {
+        if (value == "-1") {
+          break;
+        }
+      }
+    }
+  }
+
+  return key;
+}

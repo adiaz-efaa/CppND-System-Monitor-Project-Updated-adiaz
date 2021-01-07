@@ -4,27 +4,26 @@
 #include <string>
 #include <vector>
 
+#include "linux_parser.h"
 #include "process.h"
 #include "processor.h"
-#include "linux_parser.h"
 
 class System {
  public:
   // Default constructor is explicitly defined in order to instantiate
   // private members std::string os_ and std::string kernel_
   System();
-  
-  std::string OperatingSystem();      // TODO: See src/system.cpp
-  std::string Kernel();               // TODO: See src/system.cpp
-  Processor& Cpu();                   // TODO: See src/system.cpp
-  std::vector<Process>& Processes();  // TODO: See src/system.cpp
-  float MemoryUtilization();          // TODO: See src/system.cpp
-  long UpTime();                      // TODO: See src/system.cpp
-  int TotalProcesses();               // TODO: See src/system.cpp
-  int RunningProcesses();             // TODO: See src/system.cpp
-  
 
-  // TODO: Define any necessary private members
+  std::string OperatingSystem();      // DONE: See src/system.cpp
+  std::string Kernel();               // DONE: See src/system.cpp
+  Processor& Cpu();                   // DONE: See src/system.cpp
+  std::vector<Process>& Processes();  // DONE: See src/system.cpp
+  float MemoryUtilization();          // DONE: See src/system.cpp
+  long UpTime();                      // DONE: See src/system.cpp
+  int TotalProcesses();               // DONE: See src/system.cpp
+  int RunningProcesses();             // DONE: See src/system.cpp
+
+  // DONE: Define any necessary private members
  private:
   std::string os_;
   std::string kernel_;
