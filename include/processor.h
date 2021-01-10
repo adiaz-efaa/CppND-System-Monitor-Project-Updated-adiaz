@@ -1,24 +1,20 @@
 #ifndef PROCESSOR_H
 #define PROCESSOR_H
 
+#include <unistd.h>
+
+#include "linux_parser.h"
+
 class Processor {
  public:
+  // Default constructor is explicitly implemented. It initializes the private
+  // variable jiffies_.
   Processor();
   float Utilization();  // DONE: See src/processor.cpp
 
   // DONE: Declare any necessary private members
  private:
-  void get_data_();
-  long long user_;
-  long long nice_;
-  long long system_;
-  long long idle_;
-  long long iowait_;
-  long long irq_;
-  long long softirq_;
-  long long steal_;
-  long long guest_;
-  long long guest_nice_;
+  LinuxParser::Jiffies jiffies_;
 };
 
 #endif

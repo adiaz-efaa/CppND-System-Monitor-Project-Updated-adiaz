@@ -1,11 +1,10 @@
 #include <unistd.h>
+#include <algorithm>
 #include <cstddef>
 #include <set>
 #include <string>
 #include <vector>
 
-#include "process.h"
-#include "processor.h"
 #include "system.h"
 
 using std::set;
@@ -16,13 +15,24 @@ using std::vector;
 System::System() {
   os_ = LinuxParser::OperatingSystem();
   kernel_ = LinuxParser::Kernel();
+  cpu_ = Processor();
 }
 
 // DONE: Return the system's CPU.
 Processor& System::Cpu() { return cpu_; }
 
-// TODO: Return a container composed of the system's processes
-vector<Process>& System::Processes() { return processes_; }
+// DONE: Return a container composed of the system's processes
+vector<Process>& System::Processes() {
+  processes_.clear();
+  auto pids = LinuxParser::Pids();
+  for (auto pid : pids) {
+    processes_.push_back(Process(pid));
+  }
+  // Sort the vector before returning. It gets sorted
+  // by CPU utilization.
+  std::sort(processes_.begin(), processes_.end());
+  return processes_;
+}
 
 // DONE: Return the system's kernel identifier (string).
 std::string System::Kernel() { return kernel_; }

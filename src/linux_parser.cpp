@@ -48,6 +48,7 @@ string LinuxParser::Kernel() {
 }
 
 // BONUS: Update this to use std::filesystem
+// Not updated to use std::filesystem
 vector<int> LinuxParser::Pids() {
   vector<int> pids;
   DIR* directory = opendir(kProcDirectory.c_str());
@@ -105,9 +106,12 @@ long LinuxParser::UpTime() {
   return uptime;
 }
 
+/*
 // The following three functions were not implemented. The necessary jiffies
 // for the calculation of Cpu utilization in Processor::Utilization() are
-// read in that class.
+// obtained using the function Jiffies AllJiffies().
+// System CPU utilization is calculated in class Processor.
+
 // NOT DONE: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() { return 0; }
 
@@ -120,10 +124,51 @@ long LinuxParser::IdleJiffies() { return 0; }
 // NOT DONE: Read and return CPU utilization
 vector<string> LinuxParser::CpuUtilization() { return {}; }
 // *******************************************************************
+*/
 
-// TODO: Read and return the number of active jiffies for a PID
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
+// This function is not included in the initial project.
+// It is used by the Porcessor class to calculated CPU utilization.
+// It returns a struct of type LinuxParser::Jiffies which contains
+// the values in /proc/stat .
+
+LinuxParser::Jiffies LinuxParser::AllJiffies() {
+  std::string line;
+  std::string key;
+  std::ifstream filestream(LinuxParser::kProcDirectory +
+                           LinuxParser::kStatFilename);
+  LinuxParser::Jiffies jiffies;
+  if (filestream.is_open()) {
+    std::getline(filestream, line);
+    std::istringstream linestream(line);
+    linestream >> key >> jiffies.user >> jiffies.nice >> jiffies.system >>
+        jiffies.idle >> jiffies.iowait >> jiffies.irq >> jiffies.softirq >>
+        jiffies.steal >> jiffies.guest >> jiffies.guestNice;
+  }
+  return jiffies;
+}
+
+// DONE: Read and return the number of active jiffies for a PID
+// This function returns the sum of the 4 values related to CPU
+// activity in /proc/<pid>/stat .
+long LinuxParser::ActiveJiffies(int pid) {
+  long total = 0;
+  string temp;
+  string line;
+  std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
+  if (stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    int i = 1;
+    while (linestream >> temp) {
+      // Required values are in positions 14, 15 16 and 17.
+      if (i == 14 || i == 15 || i == 16 || i == 17) {
+        total += std::stol(temp);
+      };
+      ++i;
+    }
+  }
+  return total;
+}
 
 // DONE: Read and return the total number of processes
 int LinuxParser::TotalProcesses() { return Pids().size(); }
@@ -148,8 +193,7 @@ int LinuxParser::RunningProcesses() {
   return runningProcesses;
 }
 
-// TODO: Read and return the command associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
+// DONE: Read and return the command associated with a process
 string LinuxParser::Command(int pid) {
   string os, version, kernel;
   string line;
@@ -160,7 +204,7 @@ string LinuxParser::Command(int pid) {
     // std::istringstream linestream(line);
     // linestream >> os >> version >> kernel;
   }
-  return "There was a problem fetching the command.";
+  return "NA";
 }
 
 // DONE: Read and return the memory used by a process
@@ -181,7 +225,7 @@ string LinuxParser::Ram(int pid) {
     }
   }
 
-  return "RAM for Pid " + to_string(pid) + " not found.";
+  return "0";
 }
 
 // DONE: Read and return the user ID associated with a process
@@ -225,4 +269,23 @@ string LinuxParser::User(int pid) {
     }
   }
   return key;
+}
+
+// DONE: Read and return the UpTime associated with a process
+long int LinuxParser::UpTime(int pid) {
+  string upTime;
+  string line;
+  std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
+  if (stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    auto i = 1;
+    while (linestream >> upTime) {
+      if (i == 22) {
+        return std::stol(upTime);
+      };
+      ++i;
+    }
+  }
+  return 0;
 }

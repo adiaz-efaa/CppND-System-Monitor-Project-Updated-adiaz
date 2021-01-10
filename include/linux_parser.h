@@ -28,6 +28,7 @@ std::string OperatingSystem();
 std::string Kernel();
 
 // CPU
+// This enum was never used.
 enum CPUStates {
   kUser_ = 0,
   kNice_,
@@ -41,11 +42,32 @@ enum CPUStates {
   kGuestNice_
 };
 
-std::vector<std::string> CpuUtilization();
-long Jiffies();
-long ActiveJiffies();
+// This struct does not belong to the initial project.
+struct Jiffies {
+  long user;
+  long nice;
+  long system;
+  long idle;
+  long iowait;
+  long irq;
+  long softirq;
+  long steal;
+  long guest;
+  long guestNice;
+};
+
+// Returns all related values for system CPU utilization.
+Jiffies AllJiffies();
+
+// *****************************************
+// This 4 functions were not implemented.
+// long Jiffies();
+// long ActiveJiffies();
+// long IdleJiffies();
+// std::vector<std::string> CpuUtilization();
+// *****************************************
+
 long ActiveJiffies(int pid);
-long IdleJiffies();
 
 // Processes
 std::string Command(int pid);

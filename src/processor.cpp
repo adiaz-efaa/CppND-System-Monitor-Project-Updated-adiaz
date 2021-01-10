@@ -2,53 +2,45 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include "linux_parser.h"
 
-Processor::Processor() { get_data_(); }
-
-void Processor::get_data_() {
-  std::string line;
-  std::string key;
-  std::ifstream filestream(LinuxParser::kProcDirectory +
-                           LinuxParser::kStatFilename);
-  if (filestream.is_open()) {
-    std::getline(filestream, line);
-    std::istringstream linestream(line);
-    linestream >> key >> user_ >> nice_ >> system_ >> idle_ >> iowait_ >>
-        irq_ >> softirq_ >> steal_ >> guest_ >> guest_nice_;
-  }
-}
-
+Processor::Processor() { jiffies_ = LinuxParser::AllJiffies(); }
 // DONE: Return the aggregate CPU utilization
+// The algorithm shown in the checked answer in
+// https://stackoverflow.com/questions/23367857/accurate-calculation-of-cpu-usage-given-in-percentage-in-linux
+// is implemented. The class has a private variable of type LinuxParser::Jiffies
+// which is just a struct containing the values obtained from the /proc/stat
+// file.
 float Processor::Utilization() {
-  auto user = user_;
-  auto nice = nice_;
-  auto system = system_;
-  auto idle = idle_;
-  auto iowait = iowait_;
-  auto irq = irq_;
-  auto softirq = softirq_;
-  auto steal = steal_;
-  auto guest = guest_;
-  auto guest_nice = guest_nice_;
+  auto previous = jiffies_;  // The prevously assigned values are used.
+  auto current = LinuxParser::AllJiffies();
 
-  get_data_();
+  auto prevIdle = previous.idle + previous.iowait;
+  auto currentIdle = current.idle + current.iowait;
 
-  auto prevIdle = idle + iowait;
-  auto currentIdle = idle_ + iowait_;
-
-  auto prevNonIdle =
-      user - guest + nice - guest_nice + system + irq + softirq + steal;
-  auto currentNonIdle =
-      user_ - guest_ + nice_ - guest_nice_ + system_ + irq_ + softirq_ + steal_;
+  auto prevNonIdle = previous.user - previous.guest + previous.nice -
+                     previous.guestNice + previous.system + previous.irq +
+                     previous.softirq + previous.steal;
+  auto currentNonIdle = current.user - current.guest + current.nice -
+                        current.guestNice + current.system + current.irq +
+                        current.softirq + current.steal;
 
   auto prevTotal = prevIdle + prevNonIdle;
   auto currentTotal = currentIdle + currentNonIdle;
 
   // Calculate difference and percentage difference
-  long double diffTotal = currentTotal - prevTotal;
-  long double diffIdle = currentIdle - prevIdle;
-  auto cpuPercentage = (diffTotal - diffIdle) / diffTotal;
+  double diffTotal = currentTotal - prevTotal;
+  double diffIdle = currentIdle - prevIdle;
+  double cpuPercentage;
+
+  if (diffTotal == 0.0) {
+    cpuPercentage = 0.0;
+  } else {
+    cpuPercentage = (diffTotal - diffIdle) / diffTotal;
+  }
+
+  // The values are updated so they are used as previous
+  // in the next calculation.
+  jiffies_ = current;
 
   return cpuPercentage;
 }

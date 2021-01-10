@@ -15,21 +15,28 @@ class Process {
   // Explicitly forbidding the default constructor.
   Process() = delete;
 
-  int Pid() const;                         // TODO: See src/process.cpp
-  std::string User() const;                // TODO: See src/process.cpp
-  std::string Command() const;             // TODO: See src/process.cpp
-  float CpuUtilization();                  // TODO: See src/process.cpp
-  std::string Ram();                       // TODO: See src/process.cpp
-  long int UpTime();                       // TODO: See src/process.cpp
-  bool operator<(Process const& a) const;  // TODO: See src/process.cpp
+  int Pid() const;                         // DONE: See src/process.cpp
+  std::string User() const;                // DONE: See src/process.cpp
+  std::string Command() const;             // DONE: See src/process.cpp
+  float CpuUtilization() const;            // DONE: See src/process.cpp
+  std::string Ram() const;                 // DONE: See src/process.cpp
+  long int UpTime();                       // DONE: See src/process.cpp
+  bool operator<(Process const& a) const;  // DONE: See src/process.cpp
 
-  // TODO: Declare any necessary private members
+  // DONE: Declare any necessary private members
  private:
+  // Variables whose values do not change overtime are kept
+  // as private variables.
   int pid_;
   std::string user_;
   std::string command_;
+  long int uptime_;
+
+  // These functions are used only in the constructor
+  // to initialize variables user_, command_ and uptime_.
   void GetUser_();
   void GetCommand_();
+  void GetUptime_();
 };
 
 #endif

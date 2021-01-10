@@ -10,8 +10,8 @@
 
 class System {
  public:
-  // Default constructor is explicitly defined in order to instantiate
-  // private members std::string os_ and std::string kernel_
+  // Default constructor is explicitly defined in order to initialize
+  // private members os_, kernel_ and cpu_ .
   System();
 
   std::string OperatingSystem();      // DONE: See src/system.cpp
@@ -25,9 +25,14 @@ class System {
 
   // DONE: Define any necessary private members
  private:
+  // The next three variables do not change over time
+  // so they are kept as private variables.
   std::string os_;
   std::string kernel_;
   Processor cpu_;
+
+  // Since in the member function Processes() we need to return
+  // a reference to this vector, we keep it as a private variable.
   std::vector<Process> processes_;
 };
 
