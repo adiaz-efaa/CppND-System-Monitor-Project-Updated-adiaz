@@ -6,6 +6,7 @@
 
 #include "format.h"
 #include "process.h"
+#include "system.h"
 
 using std::string;
 using std::to_string;
@@ -48,13 +49,30 @@ float Process::CpuUtilization() const {
 string Process::Command() const { return LinuxParser::Command(pid_); }
 
 // DONE: Return this process's memory utilization
-string Process::Ram() const { return LinuxParser::Ram(pid_); }
+string Process::Ram() const {
+  // Memory is converted to megabytes and rounded
+  // to 0 decimal places.
+  auto k = 0.0009765625;
+  auto ram = (long)(stol(LinuxParser::Ram(pid_)) * k + .5);
+  return to_string(ram);
+}
 
 // DONE: Return the user (name) that generated this process
 string Process::User() const { return user_; }
 
 // DONE: Return the age of this process (in seconds)
-long int Process::UpTime() { return uptime_; }
+// Since uptime_ represents "The time the process started after system boot"
+// this number is subtracted from total system uptime to get process uptime.
+// COMMENT: this looks like a code smell (this code smells bad?). Even though it
+// works the fact that the process is already contained in an instance of System
+// makes this solution look a bit redundant. Maybe adding a to the project a
+// controller class that communicates with System and the functions in
+// ncurses_display could help ...
+long int Process::UpTime() {
+  System s;
+  auto sysUptime = s.UpTime();
+  return sysUptime - uptime_;
+}
 
 // DONE: Overload the "less than" comparison operator for Process objects
 // Order by CPU utilization but in inverse order (more utilization goes first).
