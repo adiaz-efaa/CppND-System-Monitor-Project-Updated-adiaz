@@ -93,6 +93,10 @@ float LinuxParser::MemoryUtilization() {
 }
 
 // DONE: Read and return the system uptime
+// NOTE: /proc/uptime
+// This file contains two numbers (values in seconds): the
+// uptime of the system (including time spent in suspend) and
+// the amount of time spent in the idle process.
 long LinuxParser::UpTime() {
   long uptime, whatever;
   string line;
@@ -150,8 +154,8 @@ LinuxParser::Jiffies LinuxParser::AllJiffies() {
 // DONE: Read and return the number of active jiffies for a PID
 // This function returns the sum of the 4 values related to CPU
 // activity in /proc/<pid>/stat .
-long LinuxParser::ActiveJiffies(int pid) {
-  long total = 0;
+float LinuxParser::ActiveJiffies(int pid) {
+  float total = 0.0;
   string temp;
   string line;
   std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
@@ -162,7 +166,7 @@ long LinuxParser::ActiveJiffies(int pid) {
     while (linestream >> temp) {
       // Required values are in positions 14, 15 16 and 17.
       if (i == 14 || i == 15 || i == 16 || i == 17) {
-        total += std::stol(temp);
+        total += std::stof(temp) / sysconf(_SC_CLK_TCK);
       };
       ++i;
     }
@@ -282,7 +286,7 @@ long int LinuxParser::UpTime(int pid) {
     auto i = 1;
     while (linestream >> upTime) {
       if (i == 22) {
-        return std::stol(upTime);
+        return UpTime() - std::stol(upTime) / sysconf(_SC_CLK_TCK);
       };
       ++i;
     }
